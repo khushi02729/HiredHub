@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads');
+// Set UPLOAD_DIR to a persistent disk path in production; defaults to backend/uploads
+const UPLOAD_DIR = process.env.UPLOAD_DIR ? path.resolve(process.env.UPLOAD_DIR) : path.join(__dirname, '..', 'uploads');
 const AVATAR_DIR = path.join(UPLOAD_DIR, 'avatars');
 fs.mkdirSync(AVATAR_DIR, { recursive: true });
 

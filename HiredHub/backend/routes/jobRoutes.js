@@ -18,6 +18,7 @@ const jobRules = [
 
 router.get('/', optionalAuth, c.getJobs);
 router.get('/filters/options', c.getFilterOptions);
+router.get('/stats/summary', c.getStats);
 router.get('/mine', protect, authorize('recruiter'), c.getMyJobs);
 router.post('/', protect, authorize('recruiter'), jobRules, validate, c.createJob);
 router.get('/:id', optionalAuth, c.getJob);

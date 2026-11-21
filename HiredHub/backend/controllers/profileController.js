@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Job = require('../models/Job');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { signToken } = require('../utils/token');
@@ -22,12 +23,16 @@ exports.update = asyncHandler(async (req, res) => {
     user.company = { ...(user.company ? user.company.toObject() : {}), ...req.body.company };
   }
   await user.save();
+  if (user.role === 'recruiter' && req.body.company) {
+    const { name, logo, website, size } = user.company;
+    await Job.updateMany({ recruiter: user._id }, { $set: { company: { name, logo, website, size } } });
+  }
   res.json({ success: true, user });
 });
 
 exports.changePassword = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select('+password');
-  if (!(await user.matchPassword(req.body.currentPassword))) throw new ApiError(401, 'Current password is incorrect');
+  if (!(await user.matchPassword(req.body.currentPassword))) throw new ApiError(400, 'Current password is incorrect');
   user.password = req.body.newPassword;
   await user.save();
   res.json({ success: true, message: 'Password updated', token: signToken(user._id, user.role) });

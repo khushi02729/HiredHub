@@ -30,7 +30,7 @@ exports.getJobs = asyncHandler(async (req, res) => {
 
   const sorts = { newest: { createdAt: -1 }, salaryHigh: { 'salary.max': -1 }, salaryLow: { 'salary.min': 1 } };
   const [jobs, total] = await Promise.all([
-    Job.find(filter).sort(sorts[sort] || sorts.newest).skip((page - 1) * limit).limit(limit).lean(),
+    Job.find(filter).sort(Object.prototype.hasOwnProperty.call(sorts, sort) ? sorts[sort] : sorts.newest).skip((page - 1) * limit).limit(limit).lean(),
     Job.countDocuments(filter),
   ]);
 
@@ -106,4 +106,14 @@ exports.getMyJobs = asyncHandler(async (req, res) => {
   const map = Object.fromEntries(counts.map((c) => [String(c._id), c.n]));
   jobs.forEach((j) => { j.applicantCount = map[String(j._id)] || 0; });
   res.json({ success: true, jobs });
+});
+
+// GET /api/jobs/stats/summary — public numbers for the landing page
+exports.getStats = asyncHandler(async (req, res) => {
+  const [jobs, companies, applications] = await Promise.all([
+    Job.countDocuments({ status: 'active' }),
+    Job.distinct('company.name', { status: 'active' }),
+    Application.countDocuments(),
+  ]);
+  res.json({ success: true, stats: { jobs, companies: companies.length, applications } });
 });
